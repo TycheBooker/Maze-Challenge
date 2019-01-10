@@ -1,0 +1,12 @@
+{
+  "name": "maze-challenge",
+  "version": "1.0.0",
+  "description": "A simple maze javascript script that handles traversing an ASCII maze.",
+  "main": "main.js",
+  "author": "Tihana Bihler",
+  "license": "MIT",
+  "scripts": {
+    "start": "node main.js",
+    "test": ""
+  }
+}
