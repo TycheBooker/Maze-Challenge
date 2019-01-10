@@ -6,7 +6,7 @@
   "author": "Tihana Bihler",
   "license": "MIT",
   "scripts": {
-    "start": "node main.js",
+    "start": "node --experimental-modules main.mjs",
     "test": ""
   }
 }
