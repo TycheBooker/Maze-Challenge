@@ -9,7 +9,16 @@ class MazeTraverser {
       y: 0
     }
     this.direction = 'right';
-    this.splitRows();
+  }
+
+  runMaze() {
+    try {
+      this.splitRows();
+      this.findStart();
+    } catch (error) {
+      console.error(error);
+      return;
+    }
   }
 
   splitRows() {
@@ -19,8 +28,7 @@ class MazeTraverser {
       return row.length > 0;
     })
     if (rows.length < 1) {
-      console.error('Invalid maze submitted. Please split rows with "\n".');
-      return;
+      throw('Invalid maze submitted. Please split rows with "\n".');
     }
     this.rows = rows;
   }
@@ -29,11 +37,9 @@ class MazeTraverser {
     // check maze for multiple starting points
     const occurances = this.maze.match(new RegExp(mazeSettings.startPosition, "g")) || []
     if (occurances.length > 1) {
-      console.error('Invalid maze submitted. There are multiple starting points.');
-      return;
+      throw('Invalid maze submitted. There are multiple starting points.');
     } else if (occurances.length === 0) {
-      console.error('Invalid maze submitted. There is no starting point.');
-      return;
+      throw('Invalid maze submitted. There is no starting point.');
     }
 
     this.rows.forEach((row, rowIndex) => {
