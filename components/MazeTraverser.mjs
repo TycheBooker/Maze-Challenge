@@ -26,7 +26,24 @@ class MazeTraverser {
   }
 
   findStart() {
+    // check maze for multiple starting points
+    const occurances = this.maze.match(new RegExp(mazeSettings.startPosition, "g")) || []
+    if (occurances.length > 1) {
+      console.error('Invalid maze submitted. There are multiple starting points.');
+      return;
+    } else if (occurances.length === 0) {
+      console.error('Invalid maze submitted. There is no starting point.');
+      return;
+    }
 
+    this.rows.forEach((row, rowIndex) => {
+      const startIndex = row.indexOf(mazeSettings.startPosition);
+      if (startIndex >= 0) {
+        this.currentPosition.x = startIndex;
+        this.currentPosition.y = rowIndex;
+        return;
+      }
+    })
   }
 
   printMaze() {
