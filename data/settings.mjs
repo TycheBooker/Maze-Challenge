@@ -1,3 +1,7 @@
 export const mazeSettings = {
-  startPosition: '@'
+  start: '@',
+  end: 'x',
+  horizontal: '-',
+  vertical: '|',
+  corner: '+'
 }

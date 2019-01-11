@@ -1,12 +1,14 @@
 export const maze1 =
-`@---A---+
+`
+@---A---+
         |
 x-B-+   C
     |   |
     +---+`
 
 export const maze2 =
-`  @
+`
+  @
   | C----+
   A |    |
   +---B--+
@@ -15,7 +17,8 @@ export const maze2 =
     +---D--+`
 
 export const maze3 =
-`  @---+
+`
+  @---+
       B
 K-----|--A
 |     |  |
