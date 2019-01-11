@@ -8,7 +8,11 @@ class MazeTraverser {
       x: 0,
       y: 0
     };
-    this.direction = '';
+    this.lastPosition = {
+      x: null,
+      y: null
+    }
+    this.movesHorizontal = true;
   }
 
   runMaze() {
@@ -55,9 +59,11 @@ class MazeTraverser {
   }
 
   findStartDirection() {
-    const adjacentTiles = this.getAdjacent();
-    if (adjacentTiles.length < 1) {
-      throw 'Invalid maze submitted. The starting position is isolated.';
+    const nextPosition = this.findNextPosition();
+    if (this.currentPosition.y === nextPosition.y) {
+      this.movesHorizontal = true;
+    } else {
+      this.movesHorizontal = false;
     }
   }
 
@@ -65,6 +71,33 @@ class MazeTraverser {
 
   }
 
+  findNextPosition() {
+    let adjacentPositions = this.getAdjacent();
+    if (adjacentPositions.length < 1) {
+      throw 'Invalid maze submitted. The starting position is isolated.';
+    }
+
+    // remove last position from possible connections
+    if (this.lastPosition.x !== null && this.lastPosition.y !== null) {
+      adjacentPositions = adjacentPositions.filter(position => {
+        return position.x !== this.lastPosition.x && position.y !== this.lastPosition.y;
+      })
+    }
+
+    const connectedPositions = adjacentPositions.filter(position => {
+      return this.doesConnect(this.currentPosition, position);
+    })
+
+    if (connectedPositions.length < 1) {
+      throw 'Invalid maze submitted. A route cannot be traced.';
+    }
+
+    while (connectedPositions.length > 1) {
+      // check next in line, disqualify
+    }
+  }
+
+  // finds all adjacent positions if they exists
   getAdjacent() {
     const adjacentPositions = [];
     const right = {
@@ -100,6 +133,7 @@ class MazeTraverser {
     return true;
   }
 
+  // checks if positions can be connected
   doesConnect(currentPosition, nextPosition) {
     const currentSymbol = this.getSymbol(currentPosition);
     const nextSymbol = this.getSymbol(nextPosition);
@@ -122,21 +156,14 @@ class MazeTraverser {
   checkPipes(symbol) {
     if (
       symbol === mazeSettings.horizontal &&
-      this.movesHorizontal()
+      this.movesHorizontal
     ) {
       return true;
     }
     if (
       symbol === mazeSettings.vertical &&
-      !this.movesHorizontal()
+      !this.movesHorizontal
     ) {
-      return true;
-    }
-    return false;
-  }
-
-  movesHorizontal() {
-    if (this.direction === 'right' || this.direction === 'left') {
       return true;
     }
     return false;
