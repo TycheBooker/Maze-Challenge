@@ -1,18 +1,20 @@
 import { mazeSettings } from '../data/settings';
-import { isASCII } from '../helpers/helpers';
+import { isLetter } from '../helpers/helpers';
 class MazeTraverser {
   constructor(mazeString) {
     this.maze = mazeString;
     this.rows = [];
     this.currentPosition = {
-      x: 0,
-      y: 0
+      x: null,
+      y: null
     };
     this.lastPosition = {
       x: null,
       y: null
     }
     this.movesHorizontal = true;
+    this.letters = '';
+    this.path = '@';
   }
 
   runMaze() {
@@ -20,6 +22,7 @@ class MazeTraverser {
       this.splitRows();
       this.findStartPosition();
       this.findStartDirection();
+      this.step();
     } catch (error) {
       console.error(error);
       return;
@@ -48,12 +51,12 @@ class MazeTraverser {
       throw 'Invalid maze submitted. There is no starting point.';
     }
 
-    this.rows.forEach((row, rowIndex) => {
+    this.rows.some((row, rowIndex) => {
       const startIndex = row.indexOf(mazeSettings.start);
       if (startIndex >= 0) {
         this.currentPosition.x = startIndex;
         this.currentPosition.y = rowIndex;
-        return;
+        return true;
       }
     });
   }
@@ -68,7 +71,21 @@ class MazeTraverser {
   }
 
   step() {
+    const nextPosition = this.findNextPosition();
+    this.lastPosition = this.currentPosition;
+    this.currentPosition = nextPosition;
 
+    this.currentSymbol = this.getSymbol(this.currentPosition);
+    this.path = this.path.concat(this.currentSymbol);
+    if (isLetter(this.currentSymbol)) {
+      this.letters = this.letters.concat(this.currentSymbol);
+    }
+    if (this.currentSymbol === mazeSettings.corner) {
+      this.movesHorizontal = !this.movesHorizontal;
+    }
+    if (this.currentSymbol !== mazeSettings.end) {
+      this.step();
+    }
   }
 
   findNextPosition() {
@@ -80,7 +97,7 @@ class MazeTraverser {
     // remove last position from possible connections
     if (this.lastPosition.x !== null && this.lastPosition.y !== null) {
       adjacentPositions = adjacentPositions.filter(position => {
-        return position.x !== this.lastPosition.x && position.y !== this.lastPosition.y;
+        return !(position.x === this.lastPosition.x && position.y === this.lastPosition.y);
       })
     }
 
@@ -94,40 +111,42 @@ class MazeTraverser {
 
     while (connectedPositions.length > 1) {
       // check next in line, disqualify
+      throw 'Multiple possibilities';
     }
+    return connectedPositions[0];
   }
 
   // finds all adjacent positions if they exists
   getAdjacent() {
-    const adjacentPositions = [];
+    let adjacentPositions = [];
     const right = {
-      x: this.currentPosition + 1,
-      y: this.currentPosition
+      x: this.currentPosition.x + 1,
+      y: this.currentPosition.y
     };
     const left = {
-      x: this.currentPosition - 1,
-      y: this.currentPosition
+      x: this.currentPosition.x - 1,
+      y: this.currentPosition.y
     };
     const up = {
-      x: this.currentPosition,
-      y: this.currentPosition + 1
+      x: this.currentPosition.x,
+      y: this.currentPosition.y + 1
     };
     const down = {
-      x: this.currentPosition,
-      y: this.currentPosition - 1
+      x: this.currentPosition.x,
+      y: this.currentPosition.y - 1
     };
     adjacentPositions.push(right, left, up, down);
-    adjacentPositions.filter(position => this.positionExists(position));
+    adjacentPositions = adjacentPositions.filter(position => this.positionExists(position));
     return adjacentPositions;
   }
 
   positionExists(position) {
     // check if row exists
-    if (position.y < 0 || position.y > this.rows.length) {
+    if (position.y < 0 || position.y > this.rows.length - 1) {
       return false;
     }
     // check if place in row exists
-    if (position.x < 0 || position.x > this.rows[position.y].length) {
+    if (position.x < 0 || position.x > this.rows[position.y].length - 1) {
       return false;
     }
     return true;
@@ -144,7 +163,7 @@ class MazeTraverser {
     }
 
     // check symbols
-    if (nextSymbol === mazeSettings.end || (nextSymbol === mazeSettings.corner) || isASCII(nextSymbol)) {
+    if (nextSymbol === mazeSettings.end || (nextSymbol === mazeSettings.corner) || isLetter(nextSymbol)) {
       if (this.checkPipes(currentSymbol)) {
         return this.checkPipes(currentSymbol);
       }
@@ -177,9 +196,13 @@ class MazeTraverser {
     console.log(this.maze);
   }
 
-  printLetters() {}
+  printLetters() {
+    console.log(this.letters);
+  }
 
-  printPath() {}
+  printPath() {
+    console.log(this.path);
+  }
 }
 
 export default MazeTraverser;
