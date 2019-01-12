@@ -21,7 +21,7 @@ class MazeTraverser {
     try {
       this.splitRows();
       this.findStartPosition();
-      this.findStartDirection();
+      this.findDirection();
       this.step();
     } catch (error) {
       console.error(error);
@@ -61,13 +61,16 @@ class MazeTraverser {
     });
   }
 
-  findStartDirection() {
-    const nextPosition = this.findNextPosition();
-    if (this.currentPosition.y === nextPosition.y) {
-      this.movesHorizontal = true;
-    } else {
-      this.movesHorizontal = false;
-    }
+  findDirection() {
+    let adjacentPositions = this.getAdjacent();
+    adjacentPositions.some(position => {
+      const symbol = this.getSymbol(position);
+      if (this.currentPosition.y === position.y && symbol === mazeSettings.horizontal) {
+        this.movesHorizontal = true;
+      } else if (this.currentPosition.x === position.x && symbol === mazeSettings.vertical) {
+        this.movesHorizontal = false;
+      }
+    })
   }
 
   step() {
@@ -83,6 +86,9 @@ class MazeTraverser {
     if (this.currentSymbol === mazeSettings.corner) {
       this.movesHorizontal = !this.movesHorizontal;
     }
+    if (isLetter(this.currentSymbol)) {
+      this.findDirection();
+    }
     if (this.currentSymbol !== mazeSettings.end) {
       this.step();
     }
@@ -90,17 +96,6 @@ class MazeTraverser {
 
   findNextPosition() {
     let adjacentPositions = this.getAdjacent();
-    if (adjacentPositions.length < 1) {
-      throw 'Invalid maze submitted. The starting position is isolated.';
-    }
-
-    // remove last position from possible connections
-    if (this.lastPosition.x !== null && this.lastPosition.y !== null) {
-      adjacentPositions = adjacentPositions.filter(position => {
-        return !(position.x === this.lastPosition.x && position.y === this.lastPosition.y);
-      })
-    }
-
     const connectedPositions = adjacentPositions.filter(position => {
       return this.doesConnect(this.currentPosition, position);
     })
@@ -109,9 +104,8 @@ class MazeTraverser {
       throw 'Invalid maze submitted. A route cannot be traced.';
     }
 
-    while (connectedPositions.length > 1) {
-      // check next in line, disqualify
-      throw 'Multiple possibilities';
+    if (connectedPositions.length > 1) {
+      throw 'Invalid maze submitted. Multiple routes possible';
     }
     return connectedPositions[0];
   }
@@ -137,6 +131,17 @@ class MazeTraverser {
     };
     adjacentPositions.push(right, left, up, down);
     adjacentPositions = adjacentPositions.filter(position => this.positionExists(position));
+
+    if (adjacentPositions.length < 1) {
+      throw 'Invalid maze submitted. The starting position is isolated.';
+    }
+
+    // remove last position from possible connections
+    if (this.lastPosition.x !== null && this.lastPosition.y !== null) {
+      adjacentPositions = adjacentPositions.filter(position => {
+        return !(position.x === this.lastPosition.x && position.y === this.lastPosition.y);
+      })
+    }
     return adjacentPositions;
   }
 
@@ -167,6 +172,13 @@ class MazeTraverser {
       if (this.checkPipes(currentSymbol)) {
         return this.checkPipes(currentSymbol);
       }
+    }
+
+    // paths crossing case
+    if (currentSymbol === mazeSettings.vertical && nextSymbol === mazeSettings.horizontal && !this.movesHorizontal) {
+      return true;
+    } else if (currentSymbol === mazeSettings.horizontal && nextSymbol === mazeSettings.vertical && this.movesHorizontal) {
+      return true;
     }
 
     return false;
