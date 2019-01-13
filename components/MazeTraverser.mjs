@@ -8,11 +8,8 @@ class MazeTraverser {
       x: null,
       y: null
     };
-    this.lastPosition = {
-      x: null,
-      y: null
-    }
-    this.movesHorizontal = true;
+    this.visitedPositions = [];
+    this.direction = '';
     this.letters = '';
     this.path = '@';
   }
@@ -21,7 +18,7 @@ class MazeTraverser {
     try {
       this.splitRows();
       this.findStartPosition();
-      this.findDirection();
+      this.checkDirection(true);
       this.step();
     } catch (error) {
       console.error(error);
@@ -61,21 +58,18 @@ class MazeTraverser {
     });
   }
 
-  findDirection() {
-    let adjacentPositions = this.getAdjacent();
-    adjacentPositions.some(position => {
-      const symbol = this.getSymbol(position);
-      if (this.currentPosition.y === position.y && symbol === mazeSettings.horizontal) {
-        this.movesHorizontal = true;
-      } else if (this.currentPosition.x === position.x && symbol === mazeSettings.vertical) {
-        this.movesHorizontal = false;
-      }
-    })
-  }
-
   step() {
-    const nextPosition = this.findNextPosition();
-    this.lastPosition = this.currentPosition;
+    const currentSymbol = this.getSymbol(this.currentPosition);
+    if (currentSymbol === mazeSettings.corner) {
+      this.checkDirection(true); // turn first, then check
+    } else if (isLetter(currentSymbol)) {
+      this.checkDirection(false); // check straight first
+    }
+    const nextPosition = this.getPosition(this.currentPosition, this.direction);
+    // if (!this.doesConnect(this.currentPosition, nextPosition)) {
+    //   throw 'Invalid maze submitted. A route cannot be traced.';
+    // }
+    this.visitedPositions.push(this.currentPosition);
     this.currentPosition = nextPosition;
 
     this.currentSymbol = this.getSymbol(this.currentPosition);
@@ -83,66 +77,70 @@ class MazeTraverser {
     if (isLetter(this.currentSymbol)) {
       this.letters = this.letters.concat(this.currentSymbol);
     }
-    if (this.currentSymbol === mazeSettings.corner) {
-      this.movesHorizontal = !this.movesHorizontal;
-    }
-    if (isLetter(this.currentSymbol)) {
-      this.findDirection();
-    }
     if (this.currentSymbol !== mazeSettings.end) {
       this.step();
     }
   }
 
-  findNextPosition() {
-    let adjacentPositions = this.getAdjacent();
-    const connectedPositions = adjacentPositions.filter(position => {
-      return this.doesConnect(this.currentPosition, position);
-    })
-
-    if (connectedPositions.length < 1) {
-      throw 'Invalid maze submitted. A route cannot be traced.';
+  checkDirection(turnFirst) {
+    if (turnFirst) {
+      this.changeDirection();
     }
-
-    if (connectedPositions.length > 1) {
-      throw 'Invalid maze submitted. Multiple routes possible';
+    const nextPosition = this.getPosition(this.currentPosition, this.direction);
+    if (!this.doesConnect(this.currentPosition, nextPosition)) {
+      this.changeDirection();
+      this.checkDirection(false);
     }
-    return connectedPositions[0];
   }
 
-  // finds all adjacent positions if they exists
-  getAdjacent() {
-    let adjacentPositions = [];
-    const right = {
-      x: this.currentPosition.x + 1,
-      y: this.currentPosition.y
-    };
-    const left = {
-      x: this.currentPosition.x - 1,
-      y: this.currentPosition.y
-    };
-    const up = {
-      x: this.currentPosition.x,
-      y: this.currentPosition.y + 1
-    };
-    const down = {
-      x: this.currentPosition.x,
-      y: this.currentPosition.y - 1
-    };
-    adjacentPositions.push(right, left, up, down);
-    adjacentPositions = adjacentPositions.filter(position => this.positionExists(position));
-
-    if (adjacentPositions.length < 1) {
-      throw 'Invalid maze submitted. The starting position is isolated.';
+  changeDirection() {
+    switch (this.direction) {
+      case 'right':
+        this.direction = 'down';
+        break;
+      case 'down':
+        this.direction = 'left';
+        break;
+      case 'left':
+        this.direction = 'up';
+        break;
+      case 'up':
+        this.direction = 'right';
+        break;
+      default:
+        this.direction = 'right';
+        break;
     }
+  }
 
-    // remove last position from possible connections
-    if (this.lastPosition.x !== null && this.lastPosition.y !== null) {
-      adjacentPositions = adjacentPositions.filter(position => {
-        return !(position.x === this.lastPosition.x && position.y === this.lastPosition.y);
-      })
+  getPosition(currentPosition, direction) {
+    switch (direction) {
+      case 'right':
+        return {
+          x: currentPosition.x + 1,
+          y: currentPosition.y
+        };
+      case 'left': {
+        return {
+          x: currentPosition.x - 1,
+          y: currentPosition.y
+        };
+      }
+      case 'up': {
+        return {
+          x: this.currentPosition.x,
+          y: this.currentPosition.y - 1
+        };
+      }
+      case 'down': {
+        return {
+          x: this.currentPosition.x,
+          y: this.currentPosition.y + 1
+        };
+      }
+      default:
+        break;
     }
-    return adjacentPositions;
   }
 
   positionExists(position) {
@@ -159,60 +157,24 @@ class MazeTraverser {
 
   // checks if positions can be connected
   doesConnect(currentPosition, nextPosition) {
-    const currentSymbol = this.getSymbol(currentPosition);
-    const nextSymbol = this.getSymbol(nextPosition);
-
-    // check pipes
-    if (this.checkPipes(nextSymbol)) {
-      return this.checkPipes(nextSymbol);
+    // check if position exists
+    if (!this.positionExists(nextPosition)) {
+      return false;
     }
-
-    // check symbols
-    if (this.isUniversalConnector(nextSymbol)) {
-      if (this.checkPipes(currentSymbol)) {
-        return this.checkPipes(currentSymbol);
-      }
-    }
-
-    // check universal
-    if (this.isUniversalConnector(currentSymbol) && this.isUniversalConnector(nextSymbol)) {
-
-    }
-
-    // paths crossing case
-    if (currentSymbol === mazeSettings.vertical && nextSymbol === mazeSettings.horizontal && !this.movesHorizontal) {
-      return true;
-    } else if (currentSymbol === mazeSettings.horizontal && nextSymbol === mazeSettings.vertical && this.movesHorizontal) {
-      return true;
-    }
-
-    return false;
-  }
-
-
-
-  checkPipes(symbol) {
+    // check if position has been visited before
     if (
-      symbol === mazeSettings.horizontal &&
-      this.movesHorizontal
+      this.visitedPositions.find(position => {
+        return position.x === nextPosition.x && position.y === nextPosition.y;
+      })
     ) {
-      return true;
+      return false;
     }
-    if (
-      symbol === mazeSettings.vertical &&
-      !this.movesHorizontal
-    ) {
-      return true;
+    // check if position if empty
+    if (this.getSymbol(nextPosition) === ' ') {
+      return false;
     }
-    return false;
-  }
 
-  isUniversalConnector(symbol) {
-    const universalConnectors = [mazeSettings.start, mazeSettings.end, mazeSettings.corner];
-    if (symbol === mazeSettings.start || symbol === mazeSettings.end || symbol === mazeSettings.corner || isLetter(symbol)) {
-      return true;
-    }
-    return false;
+    return true;
   }
 
   getSymbol(position) {
