@@ -168,10 +168,15 @@ class MazeTraverser {
     }
 
     // check symbols
-    if (nextSymbol === mazeSettings.end || (nextSymbol === mazeSettings.corner) || isLetter(nextSymbol)) {
+    if (this.isUniversalConnector(nextSymbol)) {
       if (this.checkPipes(currentSymbol)) {
         return this.checkPipes(currentSymbol);
       }
+    }
+
+    // check universal
+    if (this.isUniversalConnector(currentSymbol) && this.isUniversalConnector(nextSymbol)) {
+
     }
 
     // paths crossing case
@@ -184,6 +189,8 @@ class MazeTraverser {
     return false;
   }
 
+
+
   checkPipes(symbol) {
     if (
       symbol === mazeSettings.horizontal &&
@@ -195,6 +202,14 @@ class MazeTraverser {
       symbol === mazeSettings.vertical &&
       !this.movesHorizontal
     ) {
+      return true;
+    }
+    return false;
+  }
+
+  isUniversalConnector(symbol) {
+    const universalConnectors = [mazeSettings.start, mazeSettings.end, mazeSettings.corner];
+    if (symbol === mazeSettings.start || symbol === mazeSettings.end || symbol === mazeSettings.corner || isLetter(symbol)) {
       return true;
     }
     return false;
