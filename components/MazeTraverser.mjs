@@ -1,4 +1,5 @@
-import { mazeSettings } from '../data/settings';
+import { mazeSettings, directions } from '../data/settings';
+import Rotator from './Rotator';
 import { isLetter } from '../helpers/helpers';
 class MazeTraverser {
   constructor(mazeString) {
@@ -12,6 +13,7 @@ class MazeTraverser {
     this.direction = '';
     this.letters = '';
     this.path = '@';
+    this.rotator = new Rotator(directions);
   }
 
   runMaze() {
@@ -65,8 +67,8 @@ class MazeTraverser {
     } else if (isLetter(currentSymbol)) {
       this.checkDirection(false); // check straight first
     }
-    const nextPosition = this.getPosition(this.currentPosition, this.direction);
-    // if (!this.doesConnect(this.currentPosition, nextPosition)) {
+    const nextPosition = this.rotator.getPosition(this.currentPosition, this.direction);
+    // if (!this.doesConnect(nextPosition)) {
     //   throw 'Invalid maze submitted. A route cannot be traced.';
     // }
     this.visitedPositions.push(this.currentPosition);
@@ -86,61 +88,15 @@ class MazeTraverser {
     if (turnFirst) {
       this.changeDirection();
     }
-    const nextPosition = this.getPosition(this.currentPosition, this.direction);
-    if (!this.doesConnect(this.currentPosition, nextPosition)) {
+    const nextPosition = this.rotator.getPosition(this.currentPosition, this.direction);
+    if (!this.doesConnect(nextPosition)) {
       this.changeDirection();
       this.checkDirection(false);
     }
   }
 
   changeDirection() {
-    switch (this.direction) {
-      case 'right':
-        this.direction = 'down';
-        break;
-      case 'down':
-        this.direction = 'left';
-        break;
-      case 'left':
-        this.direction = 'up';
-        break;
-      case 'up':
-        this.direction = 'right';
-        break;
-      default:
-        this.direction = 'right';
-        break;
-    }
-  }
-
-  getPosition(currentPosition, direction) {
-    switch (direction) {
-      case 'right':
-        return {
-          x: currentPosition.x + 1,
-          y: currentPosition.y
-        };
-      case 'left': {
-        return {
-          x: currentPosition.x - 1,
-          y: currentPosition.y
-        };
-      }
-      case 'up': {
-        return {
-          x: this.currentPosition.x,
-          y: this.currentPosition.y - 1
-        };
-      }
-      case 'down': {
-        return {
-          x: this.currentPosition.x,
-          y: this.currentPosition.y + 1
-        };
-      }
-      default:
-        break;
-    }
+    this.direction = this.rotator.getNextDirection(this.direction);
   }
 
   positionExists(position) {
@@ -156,7 +112,7 @@ class MazeTraverser {
   }
 
   // checks if positions can be connected
-  doesConnect(currentPosition, nextPosition) {
+  doesConnect(nextPosition) {
     // check if position exists
     if (!this.positionExists(nextPosition)) {
       return false;
