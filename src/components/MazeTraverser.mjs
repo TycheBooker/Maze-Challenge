@@ -1,6 +1,6 @@
 import { mazeSettings, directions } from '../data/settings';
 import Rotator from './Rotator';
-import { isLetter } from '../helpers/helpers';
+import { isLetter } from '../utils/mazeTraverserUtils';
 class MazeTraverser {
   constructor(mazeString) {
     this.maze = mazeString;
