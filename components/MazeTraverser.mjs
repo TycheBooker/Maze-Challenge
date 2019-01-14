@@ -67,19 +67,28 @@ class MazeTraverser {
     } else if (isLetter(currentSymbol)) {
       this.checkDirection(false); // check straight first
     }
-    const nextPosition = this.rotator.getPosition(this.currentPosition, this.direction);
+    const nextPosition = this.rotator.getPosition(
+      this.currentPosition,
+      this.direction
+    );
     // if (!this.doesConnect(nextPosition)) {
     //   throw 'Invalid maze submitted. A route cannot be traced.';
     // }
+    const nextSymbol = this.getSymbol(nextPosition);
+    if (
+      isLetter(nextSymbol) &&
+      !this.visitedPositions.find(position => {
+        return position.x === nextPosition.x && position.y === nextPosition.y;
+      })
+    ) {
+      this.letters = this.letters.concat(nextSymbol);
+    }
+    this.path = this.path.concat(nextSymbol);
+
     this.visitedPositions.push(this.currentPosition);
     this.currentPosition = nextPosition;
 
-    this.currentSymbol = this.getSymbol(this.currentPosition);
-    this.path = this.path.concat(this.currentSymbol);
-    if (isLetter(this.currentSymbol)) {
-      this.letters = this.letters.concat(this.currentSymbol);
-    }
-    if (this.currentSymbol !== mazeSettings.end) {
+    if (nextSymbol !== mazeSettings.end) {
       this.step();
     }
   }
@@ -88,7 +97,10 @@ class MazeTraverser {
     if (turnFirst) {
       this.changeDirection();
     }
-    const nextPosition = this.rotator.getPosition(this.currentPosition, this.direction);
+    const nextPosition = this.rotator.getPosition(
+      this.currentPosition,
+      this.direction
+    );
     if (!this.doesConnect(nextPosition)) {
       this.changeDirection();
       this.checkDirection(false);
