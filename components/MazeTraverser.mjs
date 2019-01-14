@@ -71,9 +71,7 @@ class MazeTraverser {
       this.currentPosition,
       this.direction
     );
-    // if (!this.doesConnect(nextPosition)) {
-    //   throw 'Invalid maze submitted. A route cannot be traced.';
-    // }
+
     const nextSymbol = this.getSymbol(nextPosition);
     if (
       isLetter(nextSymbol) &&
@@ -101,10 +99,13 @@ class MazeTraverser {
       this.currentPosition,
       this.direction
     );
-    if (!this.doesConnect(nextPosition)) {
+    if (!this.isValidPath(nextPosition)) {
       this.changeDirection();
       this.checkDirection(false);
     }
+    // if (all directions tried) {
+    //   throw 'Invalid maze submitted. No valid paths available.';
+    // }
   }
 
   changeDirection() {
@@ -123,8 +124,8 @@ class MazeTraverser {
     return true;
   }
 
-  // checks if positions can be connected
-  doesConnect(nextPosition) {
+  // checks if path can continue
+  isValidPath(nextPosition) {
     // check if position exists
     if (!this.positionExists(nextPosition)) {
       return false;
