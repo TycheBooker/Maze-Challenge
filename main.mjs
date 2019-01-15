@@ -1,9 +1,13 @@
 import MazeTraverser from './src/components/MazeTraverser'
-import { maze1, maze2, maze3 } from './src/data/sample-mazes'
+import { mazes } from './src/data/sample-mazes'
 
-const mazeTraverser = new MazeTraverser(maze1);
-
-mazeTraverser.printMaze();
-mazeTraverser.runMaze();
-mazeTraverser.printLetters();
-mazeTraverser.printPath();
+mazes.forEach((maze, index) => {
+  const mazeTraverser = new MazeTraverser(maze.maze);
+  console.log(`Sample maze ${ index + 1 }:`);
+  console.log(mazeTraverser.getMaze());
+  mazeTraverser.runMaze();
+  const letters = mazeTraverser.getLetters();
+  const path = mazeTraverser.getPath();
+  console.log(`Letters: ${letters}\n`);
+  console.log(`Path: ${path}\n\n`);
+});

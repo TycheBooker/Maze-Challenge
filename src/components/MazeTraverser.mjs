@@ -150,16 +150,16 @@ class MazeTraverser {
     return this.rows[position.y][position.x];
   }
 
-  printMaze() {
-    console.log(this.maze);
+  getMaze() {
+    return(this.maze);
   }
 
-  printLetters() {
-    console.log(this.letters);
+  getLetters() {
+    return this.letters;
   }
 
-  printPath() {
-    console.log(this.path);
+  getPath() {
+    return this.path;
   }
 }
 
