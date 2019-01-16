@@ -16,7 +16,7 @@ class Rotator {
 
   getNextDirection(direction) {
     const index = this.directions.indexOf(direction);
-    if (index > -1 && index < this.directions.length -1) {
+    if (index > -1 && index < this.directions.length - 1) {
       return this.directions[index + 1];
     } else {
       return this.directions[0];

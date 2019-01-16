@@ -16,7 +16,7 @@ class MazeTraverser {
     this.visitedPositions = [];
     this.direction = '';
     this.letters = '';
-    this.path = '@';
+    this.path = mazeSettings.start;
     this.rotator = new Rotator(directions);
   }
 
@@ -28,7 +28,7 @@ class MazeTraverser {
       this.step();
     } catch (error) {
       console.error(error);
-      throw(error);
+      throw error;
     }
   }
 
