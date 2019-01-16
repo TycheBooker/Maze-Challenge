@@ -8,7 +8,7 @@ To start the testing suite run ```npm run test``` or ```yarn test```.
 
 The script runs on sample mazes located in ```src/data/sample-mazes.mjs```, different examples can be supplied there.
 Maze settings (characters used in the maze) and directions can be edited in ```src/data/settings.mjs```.
-Running the script will print out the first the maze, and then the collected letters and the traversed path to the console for all the included maze examples.
+Running the script will print out first the maze, and then the collected letters and the traversed path to the console for all the included maze examples.
 
 ## Requirements
 * Node > 8.5.0
