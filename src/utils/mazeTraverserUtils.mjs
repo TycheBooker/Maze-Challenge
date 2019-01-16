@@ -31,3 +31,21 @@ export function isLetter(char) {
   }
   return true;
 }
+
+export function positionExists(position, rows) {
+  // check if row exists
+  if (position.y < 0 || position.y > rows.length - 1) {
+    return false;
+  }
+  // check if place in row exists
+  if (position.x < 0 || position.x > rows[position.y].length - 1) {
+    return false;
+  }
+  return true;
+}
+
+export function arrayContainsPosition(position, array) {
+  return !!array.find(arrayPosition => {
+    return arrayPosition.x === position.x && arrayPosition.y === position.y;
+  })
+}

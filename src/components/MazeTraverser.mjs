@@ -1,6 +1,10 @@
 import { mazeSettings, directions } from '../data/settings';
 import Rotator from './Rotator';
-import { isLetter } from '../utils/mazeTraverserUtils';
+import {
+  isLetter,
+  positionExists,
+  arrayContainsPosition
+} from '../utils/mazeTraverserUtils';
 class MazeTraverser {
   constructor(mazeString) {
     this.maze = mazeString;
@@ -24,7 +28,7 @@ class MazeTraverser {
       this.step();
     } catch (error) {
       console.error(error);
-      return;
+      throw(error);
     }
   }
 
@@ -35,7 +39,7 @@ class MazeTraverser {
       return row.length > 0;
     });
     if (rows.length < 1) {
-      throw 'Invalid maze submitted. Please split rows with "\n".';
+      throw 'Empty maze submitted.';
     }
     this.rows = rows;
   }
@@ -67,17 +71,16 @@ class MazeTraverser {
     } else if (isLetter(currentSymbol)) {
       this.checkDirection(false); // check straight first
     }
+
     const nextPosition = this.rotator.getPosition(
       this.currentPosition,
       this.direction
     );
-
     const nextSymbol = this.getSymbol(nextPosition);
+
     if (
       isLetter(nextSymbol) &&
-      !this.visitedPositions.find(position => {
-        return position.x === nextPosition.x && position.y === nextPosition.y;
-      })
+      !arrayContainsPosition(nextPosition, this.visitedPositions)
     ) {
       this.letters = this.letters.concat(nextSymbol);
     }
@@ -91,7 +94,7 @@ class MazeTraverser {
     }
   }
 
-  checkDirection(turnFirst) {
+  checkDirection(turnFirst, numberOfTurns = 0) {
     if (turnFirst) {
       this.changeDirection();
     }
@@ -99,43 +102,27 @@ class MazeTraverser {
       this.currentPosition,
       this.direction
     );
+    if (numberOfTurns > Object.keys(directions).length - 1) {
+      throw 'Invalid maze submitted. No valid paths available.';
+    }
     if (!this.isValidPath(nextPosition)) {
       this.changeDirection();
-      this.checkDirection(false);
+      this.checkDirection(false, ++numberOfTurns);
     }
-    // if (all directions tried) {
-    //   throw 'Invalid maze submitted. No valid paths available.';
-    // }
   }
 
   changeDirection() {
     this.direction = this.rotator.getNextDirection(this.direction);
   }
 
-  positionExists(position) {
-    // check if row exists
-    if (position.y < 0 || position.y > this.rows.length - 1) {
-      return false;
-    }
-    // check if place in row exists
-    if (position.x < 0 || position.x > this.rows[position.y].length - 1) {
-      return false;
-    }
-    return true;
-  }
-
   // checks if path can continue
   isValidPath(nextPosition) {
     // check if position exists
-    if (!this.positionExists(nextPosition)) {
+    if (!positionExists(nextPosition, this.rows)) {
       return false;
     }
     // check if position has been visited before
-    if (
-      this.visitedPositions.find(position => {
-        return position.x === nextPosition.x && position.y === nextPosition.y;
-      })
-    ) {
+    if (arrayContainsPosition(nextPosition, this.visitedPositions)) {
       return false;
     }
     // check if position if empty
@@ -151,7 +138,7 @@ class MazeTraverser {
   }
 
   getMaze() {
-    return(this.maze);
+    return this.maze;
   }
 
   getLetters() {
